@@ -1,4 +1,0 @@
-import numpy
-import opencv2 as cv
-
-imagen = im.read("assets.png")
