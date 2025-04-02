@@ -1,8 +1,8 @@
 /*
  ******************************************************************************
- * @file           : Práctica 1
+ * @file           : Práctica 2
  * @author         : Iván Delgado Ramos
- * @brief          : Encender y apagar los leds de los pines C8 y C9
+ * @brief          : Configuración de pines GPIO para emular un semáforo
  ******************************************************************************
  */
 
