@@ -3,6 +3,11 @@
  * @file           : Práctica 1
  * @author         : Iván Delgado Ramos
  * @brief          : Encender y apagar los leds de los pines C8 y C9
+ *
+ * Descripción:
+ *  - Se encienden y apagan los LEDs conectados a los pines PC8 y PC9.
+ *  - Se utiliza un bucle infinito con retardos por software.
+ *  - Se manipulan los registros directamente sin librerías externas.
  ******************************************************************************
  */
 
