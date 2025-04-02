@@ -1,9 +1,17 @@
 /*
- ******************************************************************************
- * @file           : Práctica 2
- * @author         : Iván Delgado Ramos
- * @brief          : Configuración de pines GPIO para emular un semáforo
- ******************************************************************************
+ * Proyecto: Semáforo con STM32F0 Discovery
+ * Autor: Iván Delgado Ramos
+ * Fecha: 01/03/2025
+ * Descripción: Este código configura los pines GPIOA7, GPIOB0 y GPIOC5 como salidas 
+ * para emular un semáforo. Se usa un loop infinito con retardos para cambiar los LEDs 
+ * en la secuencia típica de un semáforo (verde -> amarillo -> rojo).
+ * 
+ * Configuración de pines:
+ * - PA7 -> LED verde
+ * - PB0 -> LED rojo
+ * - PC5 -> LED amarillo
+ * 
+ * Se utiliza el reloj del sistema y retardos generados con un ciclo while.
  */
 
 #include <stdint.h> //Biblioteca para usar funciones de C
@@ -11,7 +19,7 @@
 
 void delay(volatile uint32_t time) {//Definimos una función para consumir ciclos de reloj, funcionando como un delay
 	volatile uint32_t count =time*1000000;
-    while (count--) {}//Dado el parametro vamos decrmentando el valor hasta que este se vulva 0 y salga del ciclo
+    while (count--) {}//Dado el parametro vamos decrementando el valor hasta que este se vulva 0 y salga del ciclo
 }
 
 int main(void) {
@@ -30,22 +38,22 @@ int main(void) {
 
     //Loop
     while (1) {
-        // Encender led verde por 5 segundos
+	// Encender LED verde por 5 segundos y apagar los demás
         GPIOA->ODR |= (1 << 7);
-        GPIOB->ODR &= (0 << 0);
-        GPIOC->ODR &= (0 << 5);
+        GPIOB->ODR &= ~(1 << 0);
+        GPIOC->ODR &= ~(1 << 5);
         delay(5);
 
-        // Encender led amarillo por 2 segundos
+        // Encender LED amarillo por 2 segundos y apagar los demás
         GPIOC->ODR |= (1 << 5);
-        GPIOA->ODR &= (0 << 7);
-        GPIOB->ODR &= (0 << 0);
+        GPIOA->ODR &= ~(1 << 7);
+        GPIOB->ODR &= ~(1 << 0);
         delay(2);
 
-        // Encender led rojo por 5 segundos
+        // Encender LED rojo por 5 segundos y apagar los demás
         GPIOB->ODR |= (1 << 0);
-        GPIOA->ODR &= (0 << 7);
-        GPIOC->ODR &= (0 << 5);
+        GPIOA->ODR &= ~(1 << 7);
+        GPIOC->ODR &= ~(1 << 5);
         delay(5);
 
 
