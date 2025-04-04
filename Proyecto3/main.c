@@ -2,11 +2,11 @@
  ******************************************************************************
  * @Program        : Práctica 3, Pull Down y Pull Up
  * @Author         : Iván Delgado Ramos
- * @Date		   : 04/04/25
+ * @Date	   : 04/04/25
  * @brief          : Este programa está diseñado para el encendido de un led
- * 					 Al presionar un boton dispuesto en configuración Pull Down
- * 					 para evitar que el pin flote y depende la señal del botón
- * 					 el led se encienda o apague
+ * 		     Al presionar un boton dispuesto en configuración Pull Down
+ * 		     para evitar que el pin flote y depende la señal del botón
+ * 		     el led se encienda o apague
  ******************************************************************************
  */
 
