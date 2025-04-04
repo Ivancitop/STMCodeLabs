@@ -20,10 +20,10 @@ int main(void)
 	RCC->AHBENR |= (1<<18) | (1<<19);
 
 	GPIOB->MODER |= (1<<15*2);//Configuramos el pin B15 como salida
-	GPIOC->MODER &= ~(0x3<<6*2);//Configuramos el pin C6 como salida
+	GPIOC->MODER &= ~(0x3<<6*2);//Configuramos el pin C6 como entrada
 	GPIOC->PUPDR &= ~(0x3 << (6 * 2));//Limpiamos posibles bits en alto en el registro para el pin 6
-	//GPIOC->PUPDR |=  (0x2 << (6 * 2));//Habilitamos el pull-down para el bit 6
-	GPIOC->PUPDR |=  (1 << (6 * 2));//Habilitamos el pull-down para el bit 6
+	GPIOC->PUPDR |=  (0x2 << (6 * 2));//Habilitamos el pull-down para el pin 6
+	//GPIOC->PUPDR |=  (1 << (6 * 2));//Habilitamos el pull-up para el pin 6
 
     //Loop forever
 	while(1){
