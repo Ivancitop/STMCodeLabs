@@ -1,3 +1,12 @@
+/*
+ * Proyecto: Control de motores con STM32F0 Discovery
+ * Autor: Iván Delgado Ramos
+ * Fecha: 12/04/2025
+ * Descripción: Este código configura pines de entrada y salida para el control
+ * de motores DC, por medio de un Driver
+ * 
+ * Se utiliza el reloj del sistema y retardos generados con un timer básico.
+ */
 #include "stm32f051x8.h"
 #include "stdint.h"
 
