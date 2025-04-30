@@ -1,5 +1,5 @@
 /*
- * Proyecto: Examen
+ * Proyecto: Semáforo con STM32F0 Discovery
  * Autor: Iván Delgado Ramos
  * Fecha: 29/04/2025
  * Descripción: Diseñar e implementar un sistema que permita controlar el valor de la señal PWM
@@ -30,7 +30,7 @@ int main(void)//main
 		GPIOA->PUPDR |=  (0x1 << (pin * 2));
 	}
 
-	//Configurar pines A5-A7 como entrada con Pull-Up (Decrementadores)
+	//Configurar pines A5-A7 como entrada con Pull-Down (Decrementadores)
 	for (int pin = 5; pin <= 7; pin+=2) {
 		GPIOA->MODER &= ~(0x3 << (pin * 2));
 		GPIOA->PUPDR &= ~(0x3 << (pin * 2));
@@ -82,7 +82,7 @@ int main(void)//main
                 delayMs(1500);
                 enMovimiento = 0;//Devuelvo el estado de movimiento para hacer otra operación
             }//if 2
-            else if ((GPIOA->IDR & (1 << 5)) && (!enMovimiento)&& (dutycycleHandler!=0)&& (!movIzq)) // Incremento izquierda
+            else if ((GPIOA->IDR & (1 << 5)) && (!enMovimiento)&& (dutycycleHandler!=0)&& (!movIzq)) // Decremento derecha
             {
             	movD=1;
                 enMovimiento = 1;
@@ -92,7 +92,7 @@ int main(void)//main
                 delayMs(1500);
                 enMovimiento = 0;
             }//elif 1
-            else if (!(GPIOA->IDR & (1 << 6)) && (!enMovimiento)&& (dutycycleHandler!=100)&& (!movD)) // Decremento derecha
+            else if (!(GPIOA->IDR & (1 << 6)) && (!enMovimiento)&& (dutycycleHandler!=100)&& (!movD)) // Incremento izquierda
             {
             	movIzq=1;
                 enMovimiento = 1;
@@ -175,9 +175,9 @@ void pwmHandler(uint16_t dutyCycle, uint16_t sennal)//Pwm, 2 enteros como argume
     TIM3->CR1 = TIM_CR1_CEN;
 }
 
-void movMotor(uint16_t dutyCycle, uint16_t sennal)//Función de motor
+void movMotor(uint16_t dutyCycle, uint16_t sentido)//Función de motor
 {
-    pwmHandler(dutyCycle, sennal);//Llamado de la función de PWM
+    pwmHandler(dutyCycle, sentido);//Llamado de la función de PWM
 }
 
 void detenerMotor(void)//Detener motores
