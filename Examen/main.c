@@ -1,3 +1,13 @@
+/*
+ * Proyecto: Semáforo con STM32F0 Discovery
+ * Autor: Iván Delgado Ramos
+ * Fecha: 29/04/2025
+ * Descripción: Diseñar e implementar un sistema que permita controlar el valor de la señal PWM
+ * generada por el Timer 3 mediante entradas digitales para incrementar o disminuir su valor.
+ * Las señales PWM controlarán un puente H BTS7960 utilizando la tarjeta de desarrollo STM32F0 Discovery.
+ */
+
+//Cabezeras
 #include "stm32f051x8.h"
 #include "stdint.h"
 
@@ -7,58 +17,62 @@ void pwmHandler(uint16_t dutyCycle, uint16_t sennal);//PWM
 void movMotor(uint16_t dutyCycle, uint16_t sennal);//mover motor
 void detenerMotor(void);//frenar motores
 
-int enMovimiento = 0;//Bandera que representa el estado de movimiento
 
 int main(void)//main
 {
-    // Habilitar reloj de puerto A (entradas digitales) y C (pwm)
+    //Habilitar reloj de puerto A (entradas digitales) y C (pwm)
     RCC->AHBENR |= (1 << 17) | (1 << 19);
 
-    // Configurar pines A4-A5 como entrada con Pull-Up (Incrementadores)
-    for (int pin = 4; pin <= 5; pin++) {
-        GPIOA->MODER &= ~(0x3 << (pin * 2));//entrada
-        GPIOA->PUPDR &= ~(0x3 << (pin * 2));
-        GPIOA->PUPDR |=  (0x1 << (pin * 2)); // Pull-Up
-    }
+    //Configurar pines A4-A6 como entrada con Pull-Up (Incrementadores)
+	for (int pin = 4; pin <= 6; pin+=2) {
+		GPIOA->MODER &= ~(0x3 << (pin * 2));
+		GPIOA->PUPDR &= ~(0x3 << (pin * 2));
+		GPIOA->PUPDR |=  (0x1 << (pin * 2));
+	}
 
-    // Configurar pines A4-A5 como entrada con Pull-Up (Decrementadores)
-    for (int pin = 6; pin <= 7; pin++) {
-            GPIOA->MODER &= ~(0x3 << (pin * 2));//entrada
-            GPIOA->PUPDR &= ~(0x3 << (pin * 2));
-            GPIOA->PUPDR |=  (0x2 << (pin * 2)); // Pull-Down
-        }
+	//Configurar pines A5-A7 como entrada con Pull-Up (Decrementadores)
+	for (int pin = 5; pin <= 7; pin+=2) {
+		GPIOA->MODER &= ~(0x3 << (pin * 2));
+		GPIOA->PUPDR &= ~(0x3 << (pin * 2));
+		GPIOA->PUPDR |=  (0x2 << (pin * 2));
+	}
 
-    uint32_t inactividadMs = 0;//Bandera de estado de inactividad
+    //Bandera
+    int enMovimiento = 0;//Bandera que representa el estado de movimiento
+    int inactividadMs = 0;//Bandera de estado de inactividad
     int dutycycleHandler = 0;//Acumulador del valor del dutyCycle pwm
     int movIzq = 0;//Bandera de estado de giro izquierdo
     int movD = 0;//Bandera de estado de giro derecho
+    int botonPresionado = 0;//Bandera de estado de activación de boton
 
-    while (1)
+    while (1)//Ciclo principal
     {
-        int botonPresionado = 0;//Bandera de estado de activación de boton
+
+        botonPresionado = 0;//Reinicio de botones presionados
 
 
         //Operación OR para determinar si se presionó un botón
-        botonPresionado |= (GPIOA->IDR & (1 << 4));
+        botonPresionado |= !(GPIOA->IDR & (1 << 4));
         botonPresionado |= (GPIOA->IDR & (1 << 5));
-        botonPresionado |= (GPIOA->IDR & (1 << 6));
+        botonPresionado |= !(GPIOA->IDR & (1 << 6));
         botonPresionado |= (GPIOA->IDR & (1 << 7));
 
         if (botonPresionado)//Si al menos se presiona un botón
         {
+
             inactividadMs = 0; // Se presionó algo, resetear contador de inactividad
 
             int botonesPresionados = 0;//Limpiamos la bandera, y lo usamos como sumador de operaciones bit a bit
-            botonesPresionados += (GPIOA->IDR & (1 << 4)) ? 1 : 0;// Si se presiona el botón, sumar 1, de lo contrario sumar 0
+            botonesPresionados += !(GPIOA->IDR & (1 << 4)) ? 1 : 0;// Si se presiona el botón, sumar 1, de lo contrario sumar 0
             botonesPresionados += (GPIOA->IDR & (1 << 5)) ? 1 : 0;
-            botonesPresionados += (GPIOA->IDR & (1 << 6)) ? 1 : 0;
+            botonesPresionados += !(GPIOA->IDR & (1 << 6)) ? 1 : 0;
             botonesPresionados += (GPIOA->IDR & (1 << 7)) ? 1 : 0;
 
-            if (botonesPresionados > 1) continue; // Protección de múltiples botones
+            if (botonesPresionados > 1) continue; //Protección de múltiples botones
 
             //Si se presiona el boton, no hay otra operación en simultanea (presionar más de un btn)
             //si el duty cicly aún no es 100 y no nos estamos mov a la izquierda
-            if ((GPIOA->IDR & (1 << 4)) && (!enMovimiento) && (dutycycleHandler!=100)&& (!movIzq)) // Incremento derecha
+            if (!(GPIOA->IDR & (1 << 4)) && (!enMovimiento)&& (dutycycleHandler!=100)&& (!movIzq)) // Incremento derecha
             {
             	movD=1;//Indico con bandera el mov derecho
                 enMovimiento = 1;//Indico con bandera que hay una operación de movimiento
@@ -68,7 +82,17 @@ int main(void)//main
                 delayMs(1500);
                 enMovimiento = 0;//Devuelvo el estado de movimiento para hacer otra operación
             }//if 2
-            else if (GPIOA->IDR & (1 << 5) && (!enMovimiento)&& (dutycycleHandler!=100)&& (!movD)) // Incremento izquierda
+            else if ((GPIOA->IDR & (1 << 5)) && (!enMovimiento)&& (dutycycleHandler!=0)&& (!movIzq)) // Incremento izquierda
+            {
+            	movD=1;
+                enMovimiento = 1;
+                dutycycleHandler-=10;//Disminuyo el valor de duty cycle en un paso de 10
+                movMotor(0, 2);
+                movMotor(dutycycleHandler, 1);
+                delayMs(1500);
+                enMovimiento = 0;
+            }//elif 1
+            else if (!(GPIOA->IDR & (1 << 6)) && (!enMovimiento)&& (dutycycleHandler!=100)&& (!movD)) // Decremento derecha
             {
             	movIzq=1;
                 enMovimiento = 1;
@@ -77,18 +101,8 @@ int main(void)//main
                 movMotor(0, 1);
                 delayMs(1500);
                 enMovimiento = 0;
-            }//elif 1
-            else if (GPIOA->IDR & (1 << 6) && (!enMovimiento)&& (dutycycleHandler!=0)&& (!movIzq)) // Decremento derecha
-            {
-            	movD=1;
-                enMovimiento = 1;
-                dutycycleHandler-=10;//Disminuyo el valor de duty cycle en un paso de 10
-                movMotor(dutycycleHandler, 1);
-                movMotor(0, 2);
-                delayMs(1500);
-                enMovimiento = 0;
             }//elif 2
-            else if (GPIOA->IDR & (1 << 7) && (!enMovimiento) && (dutycycleHandler!=0)&& (!movD)) // Decremento izquierda
+            else if (((GPIOA->IDR & (1 << 7))) && (!enMovimiento) && (dutycycleHandler!=0)&& (!movD)) // Decremento izquierda
             {
             	movIzq=1;
                 enMovimiento = 1;
@@ -101,13 +115,13 @@ int main(void)//main
         }//if 1
         else
         {
-            delayMs(100); // Esperar 100ms entre chequeos
-            inactividadMs += 100; // Aumentar el tiempo de inactividad
+            delayMs(100); //Esperar 100ms entre chequeos
+            inactividadMs += 100; //Aumentar el tiempo de inactividad
 
-            if (inactividadMs >= 7000) // 7 segundos de inactividad
+            if (inactividadMs >= 7000) //7 segundos de inactividad
             {
                 detenerMotor();
-                inactividadMs = 0; // Resetear contador
+                inactividadMs = 0; //Resetear contador
                 //Reseteamos banderas y contadores
                 movD=0;
                 movIzq=0;
@@ -134,9 +148,10 @@ void delayMs(uint16_t tiempoMs)//delay, entero como argumento
     TIM6->CR1 = 0;
 }
 
-void pwmHandler(uint16_t dutyCycle, uint16_t sennal)
+void pwmHandler(uint16_t dutyCycle, uint16_t sennal)//Pwm, 2 enteros como argumento (magnitud duty cycle, canal)
+													// 1 - Derecha, 2 - Izquierda
 {
-    int pin = (sennal == 1) ? 12 : 14;//Define el pin de acuerdo a la señal definida en el argumento (operador ternario)
+    int pin = (sennal == 1) ? 12 : 14;//Define el pin de acuerdo al canal definida en el argumento (operador ternario)
 
     GPIOC->MODER &= ~(0x3 << pin);
     GPIOC->MODER |= (0x2 << pin);
@@ -162,7 +177,7 @@ void pwmHandler(uint16_t dutyCycle, uint16_t sennal)
 
 void movMotor(uint16_t dutyCycle, uint16_t sennal)//Función de motor
 {
-    pwmHandler(dutyCycle, sennal);
+    pwmHandler(dutyCycle, sennal);//Llamado de la función de PWM
 }
 
 void detenerMotor(void)//Detener motores
