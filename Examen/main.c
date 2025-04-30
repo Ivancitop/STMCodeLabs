@@ -1,5 +1,5 @@
 /*
- * Proyecto: Semáforo con STM32F0 Discovery
+ * Proyecto: Examen
  * Autor: Iván Delgado Ramos
  * Fecha: 29/04/2025
  * Descripción: Diseñar e implementar un sistema que permita controlar el valor de la señal PWM
