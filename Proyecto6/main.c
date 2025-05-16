@@ -96,7 +96,7 @@ void Bluetooth_ControlLoop(void)
 
     while (1)
     {
-        char c = USART2_Read(); //
+        char c = USART2_Read(); //Lectura del byte carácter por carácter
 
         if (c == '\n' || c == '\r') { //Si encuentra un salto de línea o espacio...
             buffer[idx] = '\0'; //Cerrar lista
